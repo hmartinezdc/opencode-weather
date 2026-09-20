@@ -1,0 +1,13 @@
+{
+  "cities": [
+    {
+      "name": "Barcelona",
+      "latitude": 41.38879,
+      "longitude": 2.15899,
+      "isDefault": true
+    }
+  ],
+  "settings": {
+    "temperatureUnit": "fahrenheit"
+  }
+}
