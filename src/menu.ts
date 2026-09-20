@@ -1,5 +1,31 @@
 import type { AppState, City } from './types.ts';
 import { cyan, green, red, yellow, boldCyan } from './colors.ts';
+import { createInterface } from 'node:readline';
+
+let inputBuffer: string[] = [];
+let waitingResolve: ((value: string) => void) | null = null;
+let inputEnded = false;
+
+const rl = createInterface({ input: process.stdin });
+
+rl.on('line', (line) => {
+  if (waitingResolve) {
+    const resolve = waitingResolve;
+    waitingResolve = null;
+    resolve(line);
+  } else {
+    inputBuffer.push(line);
+  }
+});
+
+rl.on('close', () => {
+  inputEnded = true;
+  if (waitingResolve) {
+    const resolve = waitingResolve;
+    waitingResolve = null;
+    resolve('');
+  }
+});
 
 const BORDER = '═'.repeat(42);
 const TITLE = '          WEATHER CLI';
@@ -60,21 +86,18 @@ export function listCities(cities: City[]): void {
 
 export async function getInput(promptText = ''): Promise<string> {
   if (promptText) process.stdout.write(promptText);
-  
-  // Try Bun's built-in prompt (Bun 1.1+)
-  try {
-    // @ts-ignore - Bun global prompt function
-    if (typeof prompt === 'function') {
-      // @ts-ignore
-      return (await prompt('')).trim();
+
+  return new Promise((resolve) => {
+    if (inputBuffer.length > 0) {
+      resolve(inputBuffer.shift() ?? '');
+      return;
     }
-  } catch {
-    // Fall through to stdin
-  }
-  
-  // Fallback to stdin
-  const input = await Bun.stdin.text();
-  return input.trim();
+    if (inputEnded) {
+      resolve('');
+      return;
+    }
+    waitingResolve = resolve;
+  });
 }
 
 export async function pressEnterToContinue(): Promise<void> {
