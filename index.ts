@@ -1,12 +1,13 @@
 import { loadState } from './src/storage.ts';
-import { showMenu, getInput, pressEnterToContinue } from './src/menu.ts';
-import { red } from './src/colors.ts';
+import { showMenu, getInput, pressEnterToContinue, inputExhausted } from './src/menu.ts';
+import { red, yellow } from './src/colors.ts';
 import { 
   handleOption1, 
   handleOption2, 
   handleOption3, 
   handleOption4, 
-  handleOption5 
+  handleOption5,
+  handleOption6 
 } from './src/cities.ts';
 import { handleOption8 } from './src/settings.ts';
 
@@ -14,6 +15,11 @@ async function main(): Promise<void> {
   const state = await loadState();
   
   while (true) {
+    if (inputExhausted()) {
+      console.log(`\n  ${yellow('Entrada cerrada. Saliendo...')}\n`);
+      process.exit(0);
+    }
+
     showMenu(state);
     const choice = await getInput();
     
@@ -32,6 +38,9 @@ async function main(): Promise<void> {
         break;
       case '5':
         await handleOption5(state);
+        break;
+      case '6':
+        await handleOption6(state);
         break;
       case '8':
         await handleOption8(state);

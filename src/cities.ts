@@ -1,5 +1,5 @@
 import type { AppState, City, GeocodingResult } from './types.ts';
-import { searchCity, getWeather, formatTemperature, getCityDisplayName } from './api.ts';
+import { searchCity, getWeather, getDailyForecast, getCityDisplayName } from './api.ts';
 import { 
   loadState, 
   saveState, 
@@ -11,6 +11,7 @@ import {
 import { 
   showMenu, 
   showWeather, 
+  showForecast,
   showError, 
   showSuccess, 
   listCities, 
@@ -27,14 +28,25 @@ export async function handleOption1(state: AppState): Promise<void> {
     return;
   }
   
-  const temp = await getWeather(defaultCity.latitude, defaultCity.longitude);
+  const [temp, forecast] = await Promise.all([
+    getWeather(defaultCity.latitude, defaultCity.longitude),
+    getDailyForecast(defaultCity.latitude, defaultCity.longitude),
+  ]);
+
   if (temp === null) {
     showError('No se pudo obtener el clima.');
     await pressEnterToContinue();
     return;
   }
-  
+
   showWeather(defaultCity.name, temp, state.settings.temperatureUnit);
+
+  if (forecast) {
+    showForecast(defaultCity.name, forecast, state.settings.temperatureUnit);
+  } else {
+    showError('No se pudo obtener el pronóstico.');
+  }
+
   await pressEnterToContinue();
 }
 
@@ -96,6 +108,43 @@ export async function handleOption3(state: AppState): Promise<void> {
   await saveState(state);
   
   showSuccess(`Ciudad "${result.name}" agregada correctamente.`);
+  await pressEnterToContinue();
+}
+
+export async function handleOption6(state: AppState): Promise<void> {
+  if (state.cities.length === 0) {
+    showError('No hay ciudades guardadas.');
+    await pressEnterToContinue();
+    return;
+  }
+
+  listCities(state.cities);
+  const input = await getInput('  Seleccione el número de la ciudad: ');
+  const index = parseInt(input, 10) - 1;
+
+  if (isNaN(index) || index < 0 || index >= state.cities.length) {
+    showError('Selección inválida.');
+    await pressEnterToContinue();
+    return;
+  }
+
+  const city = state.cities[index];
+  if (!city) {
+    showError('Ciudad no encontrada.');
+    await pressEnterToContinue();
+    return;
+  }
+
+  console.log(`  ${cyan('Obteniendo pronóstico...')}`);
+  const forecast = await getDailyForecast(city.latitude, city.longitude);
+
+  if (!forecast) {
+    showError('No se pudo obtener el pronóstico.');
+    await pressEnterToContinue();
+    return;
+  }
+
+  showForecast(city.name, forecast, state.settings.temperatureUnit);
   await pressEnterToContinue();
 }
 

@@ -1,5 +1,6 @@
-import type { AppState, City } from './types.ts';
+import type { AppState, City, DailyForecast } from './types.ts';
 import { cyan, green, red, yellow, boldCyan } from './colors.ts';
+import { formatTemperature } from './api.ts';
 import { createInterface } from 'node:readline';
 
 let inputBuffer: string[] = [];
@@ -49,6 +50,7 @@ export function showMenu(state: AppState): void {
   console.log(`  ${cyan('3.')} Buscar y agregar ciudad`);
   console.log(`  ${cyan('4.')} Eliminar ciudad`);
   console.log(`  ${cyan('5.')} Establecer ciudad default`);
+  console.log(`  ${cyan('6.')} Pronóstico 7 días de una ciudad`);
   console.log(`  ${cyan('8.')} Ajustes ${cyan(`(${unitLabel})`)}`);
   console.log(`  ${cyan('9.')} Salir`);
   console.log(cyan(BORDER));
@@ -56,10 +58,28 @@ export function showMenu(state: AppState): void {
 }
 
 export function showWeather(cityName: string, temperature: number, unit: 'celsius' | 'fahrenheit'): void {
-  const displayTemp = unit === 'fahrenheit' 
-    ? Math.round(temperature * 9 / 5 + 32) + '°F'
-    : temperature + '°C';
-  console.log(`\n  Clima en ${cyan(cityName)}: ${yellow(displayTemp)}\n`);
+  console.log(`\n  Clima en ${cyan(cityName)}: ${yellow(formatTemperature(temperature, unit))}\n`);
+}
+
+export function showForecast(cityName: string, days: DailyForecast[], unit: 'celsius' | 'fahrenheit'): void {
+  console.log(`\n  ${cyan(`Pronóstico 7 días en ${cityName}:`)}`);
+  console.log(`  ${cyan(BORDER)}`);
+
+  const formatter = new Intl.DateTimeFormat('es-ES', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+
+  days.forEach((day) => {
+    // Noon keeps the calendar date stable even if the runtime timezone differs from the city's
+    const label = formatter.format(new Date(`${day.date}T12:00:00`));
+    const max = day.tempMax === null ? '—' : formatTemperature(day.tempMax, unit);
+    const min = day.tempMin === null ? '—' : formatTemperature(day.tempMin, unit);
+    console.log(`  ${label.padEnd(12)}${yellow(max)} / ${cyan(min)}`);
+  });
+
+  console.log();
 }
 
 export function showError(message: string): void {
@@ -102,4 +122,9 @@ export async function getInput(promptText = ''): Promise<string> {
 
 export async function pressEnterToContinue(): Promise<void> {
   await getInput('  Presiona Enter para continuar...');
+}
+
+/** True when stdin closed and the queued input is exhausted (no further input will ever arrive). */
+export function inputExhausted(): boolean {
+  return inputEnded && inputBuffer.length === 0;
 }

@@ -7,7 +7,7 @@
 - [ ] **Binario:** compila bien; revisar que `./weather.exe` guarde datos en `sr/weather-cli/`.
 - [ ] **Escalabilidad:** ¿qué tan fácil será expandir con nuevas funcionalidades?
 - [ ] **Carga:** ¿hay estado de carga en las tareas asíncronas?
-- [ ] **7 Day forecast:** agregar la posibilidad de obtener el pronóstico del cima para los próximos 7 días.
+- [x] **7 Day forecast:** agregar la posibilidad de obtener el pronóstico del cima para los próximos 7 días.
 
 ## CheckList adicional de revisión
 

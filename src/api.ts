@@ -1,4 +1,4 @@
-import type { GeocodingResult, ForecastResult } from './types.ts';
+import type { GeocodingResult, ForecastResult, DailyForecast, DailyForecastResult } from './types.ts';
 
 const GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
@@ -35,6 +35,27 @@ export async function getWeather(latitude: number, longitude: number): Promise<n
     
     const data = await response.json() as ForecastResult;
     return data.current?.temperature_2m ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getDailyForecast(latitude: number, longitude: number): Promise<DailyForecast[] | null> {
+  const url = `${FORECAST_URL}?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=7`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+
+    const data = await response.json() as DailyForecastResult;
+    const daily = data.daily;
+    if (!daily?.time) return null;
+
+    return daily.time.map((date, i) => ({
+      date,
+      tempMax: daily.temperature_2m_max?.[i] ?? null,
+      tempMin: daily.temperature_2m_min?.[i] ?? null,
+    }));
   } catch {
     return null;
   }
