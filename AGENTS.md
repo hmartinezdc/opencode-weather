@@ -8,9 +8,11 @@ Weather CLI in **Bun + TypeScript** (strict). Menú interactivo en español que 
 bun install                    # deps
 bun run dev                    # run with --watch
 bun run typecheck              # bunx tsc --noEmit (TS is peer dep — run via bunx)
-bun run build                  # emits weather.exe (gitignored artifact)
+bun run verify                 # typecheck + tests (gate before build)
+bun run test                   # bun test (suite in /tests, no network needed)
+bun run build                  # runs verify first — refuses to compile if typecheck/tests fail; emits weather.exe (gitignored artifact)
 ```
-No tests exist.
+Tests live in `tests/` and run via `bun test`.
 
 ## Hard rules
 - **Imports must use explicit `.ts` extensions** (`./types/City.ts`): `moduleResolution: bundler` + `allowImportingTsExtensions`. Omitting the extension fails typecheck.
@@ -25,6 +27,7 @@ No tests exist.
 - `src/api/` — `geocoding.ts` and `weather.ts` (OpenMeteo integration).
 - `src/types/` — `City`, `Weather`, `MenuOption`, `Geocoding`, `Settings`, `AppState`.
 - `src/utils/` — `colors.ts`, `format.ts`, `constants.ts`.
+- `tests/` — bun:test suite mirroring `src/` (api, storage, utils). API tests stub `globalThis.fetch` (helpers in `tests/helpers/fetchMock.ts`); `appStateStorage.test.ts` mocks `node:os` (`homedir`) before a dynamic import so storage hits a temp dir instead of `~/.weather-cli`.
 
 ## Gotchas
 - State lives at **`~/.weather-cli/data.json`**, not in the repo. Writes are atomic (tmp file + rename).

@@ -3,7 +3,7 @@
 - [x] **Colores:** no hay ninguno; falta definir cyan (menú), amarillo (temp), verde/rojo (ok/error).
 - [ ] **AGENTS.md:** dice que `index.ts` es stub, pero la app ya funciona — hay que actualizarlo.
 - [ ] **Ciudades:** geocoding solo trae 1 resultado; nombres ambiguos pueden fallar.
-- [ ] **Tests:** no existen; conviene al menos probar storage y las APIs con mocks.
+- [x] **Tests:** suite con `bun:test` en `/tests` (APIs con `fetch` mockeado, storage con `homedir` apuntado a un dir temporal, y storage/utils puros); `bun run build` no compila si fallan.
 - [ ] **Binario:** compila bien; revisar que `./weather.exe` guarde datos en `sr/weather-cli/`.
 - [ ] **Escalabilidad:** ¿qué tan fácil será expandir con nuevas funcionalidades?
 - [ ] **Carga:** ¿hay estado de carga en las tareas asíncronas?
